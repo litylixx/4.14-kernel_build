@@ -80,7 +80,6 @@ jobs:
 
       - name: Check Polly Support
         run: |
-          clang --version
           clang -mllvm --help | grep polly
           
       - name: Start Compilation

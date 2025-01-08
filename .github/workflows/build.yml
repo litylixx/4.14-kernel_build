@@ -80,9 +80,8 @@ jobs:
 
       - name: Check Polly Support
         run: |
-          if ! clang -mllvm -polly-process-unprofitable -v 2>&1 | grep -q "polly"; then
-          echo "Warning: Polly support might not be available in this Clang version"
-          fi
+          clang --version
+          clang -mllvm --help | grep polly
           
       - name: Start Compilation
         run: |
@@ -106,10 +105,8 @@ jobs:
 
           compile() {
             cd "${{ github.workspace }}"
-  
-            POLLY_FLAGS="-O3 -mllvm -polly -mllvm -polly-parallel -mllvm -polly-vectorizer=stripmine"
-            POLLY_OPTS="-mllvm -polly-position=early -mllvm -polly-scheduling=static -mllvm -polly-tiling -mllvm -polly-default-tile-size=32"
-            CFLAGS="$POLLY_FLAGS $POLLY_OPTS"
+ 
+            CFLAGS="-O3 -mllvm -polly -mllvm -polly-parallel -mllvm -polly-vectorize"
             KCFLAGS="$CFLAGS"
   
             make -j$(nproc --all) \

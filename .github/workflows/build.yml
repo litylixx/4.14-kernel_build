@@ -78,10 +78,6 @@ jobs:
           path: ${{ github.workspace }}/out
           key: ${{ github.event.inputs.KERNEL_SOURCE }}-out-
 
-      - name: Check Polly Support
-        run: |
-          clang -mllvm --help | grep polly
-          
       - name: Start Compilation
         run: |
           export TZ='Asia/Kuala_Lumpur'

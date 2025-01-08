@@ -1,4 +1,4 @@
-name: Anymore
+name: Build 4.14 Kernel
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       KERNEL_SOURCE:
         description: 'Kernel source URL'
         required: true
-        default: 'https://github.com/Rave-Project/android_kernel_nabu_sm8150-ac.git'
+        default: 'https://github.com/litylixx/android_kernel_nabu_sm8150-ac.git'
       KERNEL_BRANCH:
         description: 'Kernel branch'
         required: true
@@ -14,7 +14,7 @@ on:
       KERNEL_NAME:
         description: 'Kernel/zip name'
         required: true
-        default: 'Anymore'
+        default: 'Lithium?'
       CONFIG_FILE:
         description: 'Config file (You can put multiple configs separated by space)'
         required: true
@@ -46,10 +46,12 @@ jobs:
           sudo apt-get install -y curl git ftp lftp wget libarchive-tools ccache python2 python2-dev
           sudo apt-get install -y zip unzip tar gzip bzip2 rar unrar cpio jq
           sudo apt-get install -y device-tree-compiler
-
+          sudo apt-get install -y libgmp-dev libmpfr-dev libisl-dev
+          
       - name: Cloning Kernel Source
         run: |
           git clone --single-branch --depth=1 --no-tags ${{ github.event.inputs.KERNEL_SOURCE }} -b ${{ github.event.inputs.KERNEL_BRANCH }} ${{ github.workspace }}
+          rm -r /home/runner/work/4.14-kernel_build/4.14-kernel_build/anykernel
           
       - name: Cloning Toolchain
         run: |
@@ -76,6 +78,12 @@ jobs:
           path: ${{ github.workspace }}/out
           key: ${{ github.event.inputs.KERNEL_SOURCE }}-out-
 
+      - name: Check Polly Support
+        run: |
+          if ! clang -mllvm -polly-process-unprofitable -v 2>&1 | grep -q "polly"; then
+          echo "Warning: Polly support might not be available in this Clang version"
+          fi
+          
       - name: Start Compilation
         run: |
           export TZ='Asia/Kuala_Lumpur'
@@ -90,7 +98,6 @@ jobs:
           export KBUILD_BUILD_USER=home
 
           export PATH="${clang_dir}/bin:$PATH"
-
           
           make_defconfig() {
             start=$(date +"%s")
@@ -99,8 +106,8 @@ jobs:
 
           compile() {
             cd "${{ github.workspace }}"
-              
-            make -j$(nproc --all) \
+            
+          make -j$(nproc --all) \
               O="${objdir}" \
               ARCH="${arch}" \
               SUBARCH=arm64 \
@@ -118,8 +125,28 @@ jobs:
               OBJDUMP=llvm-objdump \
               READELF=llvm-readelf \
               LLVM=1 \
-              LLVM_IAS=1
-          }
+              LLVM_IAS=1 \
+              CFLAGS="-O3 \
+               -mllvm -polly \
+               -mllvm -polly-parallel \
+               -mllvm -polly-vectorizer=stripmine \
+               -mllvm -polly-position=early \
+               -mllvm -polly-opt-fusion=max \
+               -mllvm -polly-ast-use-context \
+               -mllvm -polly-detect-pattern-matrices \
+               -mllvm -polly-tiling \
+               -mllvm -polly-default-tile-size=32" \
+              KCFLAGS="-O3 \
+               -mllvm -polly \
+               -mllvm -polly-parallel \
+               -mllvm -polly-vectorizer=stripmine \
+               -mllvm -polly-position=early \
+               -mllvm -polly-opt-fusion=max \
+               -mllvm -polly-ast-use-context \
+               -mllvm -polly-detect-pattern-matrices \
+               -mllvm -polly-tiling \
+               -mllvm -polly-default-tile-size=32"
+}
 
           completion() {
             cd "${objdir}"

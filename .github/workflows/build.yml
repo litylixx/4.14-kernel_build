@@ -101,7 +101,7 @@ jobs:
           compile() {
             cd "${{ github.workspace }}"
  
-            CFLAGS="-O3 -mllvm -polly -mllvm -polly-parallel -mllvm -polly-vectorize"
+            CFLAGS="-O3 -mllvm -polly -mllvm -polly-parallel -mllvm -polly-vectorizer=stripmine"
             KCFLAGS="$CFLAGS"
   
             make -j$(nproc --all) \

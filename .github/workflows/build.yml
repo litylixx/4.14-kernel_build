@@ -107,6 +107,9 @@ jobs:
           compile() {
             cd "${{ github.workspace }}"
             
+            CFLAGS="-O3 -mllvm -polly -mllvm -polly-parallel -mllvm -polly-vectorizer=stripmine -mllvm -polly-position=early -mllvm -polly-opt-fusion=max -mllvm -polly-ast-use-context -mllvm -polly-detect-pattern-matrices -mllvm -polly-tiling -mllvm -polly-default-tile-size=32"
+            KCFLAGS="$CFLAGS"
+            
             make -j$(nproc --all) \
               O="${objdir}" \
               ARCH="${arch}" \
@@ -126,27 +129,10 @@ jobs:
               READELF=llvm-readelf \
               LLVM=1 \
               LLVM_IAS=1 \
-              'CFLAGS=-O3 
-                   -mllvm -polly 
-                   -mllvm -polly-parallel 
-                   -mllvm -polly-vectorizer=stripmine 
-                   -mllvm -polly-position=early 
-                   -mllvm -polly-opt-fusion=max 
-                   -mllvm -polly-ast-use-context 
-                   -mllvm -polly-detect-pattern-matrices 
-                   -mllvm -polly-tiling 
-                   -mllvm -polly-default-tile-size=32' \
-              'KCFLAGS=-O3 
-                    -mllvm -polly 
-                    -mllvm -polly-parallel 
-                    -mllvm -polly-vectorizer=stripmine 
-                    -mllvm -polly-position=early 
-                    -mllvm -polly-opt-fusion=max 
-                    -mllvm -polly-ast-use-context 
-                    -mllvm -polly-detect-pattern-matrices 
-                    -mllvm -polly-tiling 
-                    -mllvm -polly-default-tile-size=32'
-}
+              CFLAGS="$CFLAGS" \
+              KCFLAGS="$KCFLAGS"
+          }
+          
           completion() {
             cd "${objdir}"
             compiled_image="arch/arm64/boot/Image"

@@ -14,7 +14,7 @@ on:
       KERNEL_NAME:
         description: 'Kernel/zip name'
         required: true
-        default: 'Sodium'
+        default: 'idk'
       CONFIG_FILE:
         description: 'Config file (You can put multiple configs separated by space)'
         required: true
@@ -50,7 +50,6 @@ jobs:
       - name: Cloning Kernel Source
         run: |
           git clone --single-branch --depth=1 --no-tags ${{ github.event.inputs.KERNEL_SOURCE }} -b ${{ github.event.inputs.KERNEL_BRANCH }} ${{ github.workspace }}
-          rm -r /home/runner/work/4.14-kernel_build/4.14-kernel_build/anykernel
           
       - name: Cloning Toolchain
         run: |
